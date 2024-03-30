@@ -1,5 +1,5 @@
 module fsm_sar_bs #(
-  parameter Width = 8
+  parameter Width = 6
 ) (
   input                  clk_i,
   input                  rst_i,
