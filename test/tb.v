@@ -23,7 +23,7 @@ module tb ();
   wire [7:0] uio_oe;
 
   // Replace tt_um_example with your module name:
-  tt_um_fsm_sar_bs C2R (
+  tt_um_fsm_sar_bs C2 (
 
       // Include power ports for the Gate Level test:
 `ifdef GL_TEST
