@@ -5,7 +5,7 @@
 
 `define default_netname none
 
-module tt_um_example (
+module tt_um_fsm_sar_bs (
     input  wire [7:0] ui_in,    // Dedicated inputs
     output wire [7:0] uo_out,   // Dedicated outputs
     input  wire [7:0] uio_in,   // IOs: Input path
@@ -17,8 +17,13 @@ module tt_um_example (
 );
 
   // All output pins must be assigned. If not used, assign to 0.
-  assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
-  assign uio_out = 0;
-  assign uio_oe  = 0;
+  //assign uo_out  = ui_in + uio_in;  // Example: ou_out is the sum of ui_in and uio_in
+  //assign uio_out = 0;
+  //assign uio_oe  = 0;
 
+    fsm_sar_bs #(.Width(6)) C2R (.clk_i(ui_in[7]), .rst_i(ui_in[6]), .start_i(ui_in[5]), .cmp_i(ui_in[4]) , .result_o(uo_out[5:0]), .dac_o(uo_out[5:0]), .sample_o(uo_out[7]) , .eoc_o(uo_out[6]));   
+
+    assign uio_eo = 8'b11111111;
+    assign uio_out = 8'b11111111;
+    assign uo_out = 8'b11111111;
 endmodule
