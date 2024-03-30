@@ -25,5 +25,5 @@ module tt_um_fsm_sar_bs (
 
     assign uio_eo = 8'b11111111;
     assign uio_out = 8'b11111111;
-    assign uo_out = 8'b10111111;
+    assign uo_out = 8'bXX111111;
 endmodule
