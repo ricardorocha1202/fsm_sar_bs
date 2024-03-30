@@ -38,7 +38,7 @@ pinout:
   uo[3]: "result_o[3]"
   uo[4]: "result_o[4]"
   uo[5]: "result_o[5]"
-  uo[6]: "No use"
+  uo[6]: "sample_o"
   uo[7]: "No use"
 
   # Bidirectional pins
@@ -48,8 +48,8 @@ pinout:
   uio[3]: "dac_o[3]"
   uio[4]: "dac_o[4]"
   uio[5]: "dac_o[5]"
-  uio[6]: "sample_o"
-  uio[7]: "eoc_o"
+  uio[6]: "eoc_o"
+  uio[7]: "No use"
 
 # Do not change!
 yaml_version: 6
