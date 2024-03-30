@@ -23,7 +23,7 @@ module tt_um_fsm_sar_bs (
 
     fsm_sar_bs #(.Width(6)) C2R (.clk_i(ui_in[7]), .rst_i(ui_in[6]), .start_i(ui_in[5]), .cmp_i(ui_in[4]) , .result_o(uio_out[5:0]), .sample_o(uo_iout[6]), .dac_o(uo_out[5:0]), .eoc_o(uo_out[6]));   
 
-    assign uio_eo = 8'b00111111;
+    assign uio_eo = 8'b01111111;
     assign uio_out [7]= 1'b0;
     assign uo_out [7] = 1'b0;
 endmodule
