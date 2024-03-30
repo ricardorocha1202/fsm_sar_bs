@@ -1,4 +1,4 @@
-module fsm_sar #(
+module fsm_sar_bs #(
   parameter Width = 8
 ) (
   input                  clk_i,
