@@ -62,8 +62,8 @@ module fsm_sar_bs #(
   always @(posedge clk_i, posedge rst_i) begin
     if (rst_i) begin
       state_reg <= s0;
-      mask_reg  <= { Width {1'b0} };
-      res_reg   <= { Width {1'b0} };
+      mask_reg  <= 0;
+      res_reg   <= 0;
     end else begin
       state_reg <= state_next;
       mask_reg  <= mask_next;
