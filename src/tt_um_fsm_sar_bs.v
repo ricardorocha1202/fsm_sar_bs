@@ -22,7 +22,7 @@ module tt_um_fsm_sar_bs (
   //assign uio_oe  = 0;
 
     //fsm_sar_bs #(.Width(6)) C2 (.clk_i(ui_in[7]), .rst_i(ui_in[6]), .start_i(ui_in[5]), .cmp_i(ui_in[4]) , .result_o(uio_out[5:0]), .sample_o(uio_out[6]), .dac_o(uo_out[5:0]), .eoc_o(uo_out[6]));   
-    fsm_sar_bs #(.NOB(7)) C2 (.clk(ui_in[7]), .rst(ui_in[6]), .go(ui_in[5]), .cmp(ui_in[4:3]) , .result(uio_out[6:0]), .sample(uio_out[7]), .value(uo_out[6:0]), .valid(uo_out[7]));       
+    fsm_sar_bs T2 (.thermometer_input[15:8](ui_in[7:0]), ..thermometer_input[7:0](uio_out[7:0]), .binary_output(uo_out[3:0]));       
     assign uio_eo[7:0] = 8'b11111111;
     //assign uio_out[7]= 1'b0;
     //assign uo_out[7] = 1'b0;
