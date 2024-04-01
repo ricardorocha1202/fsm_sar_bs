@@ -1,82 +1,58 @@
-module fsm_sar_bs #(
-  parameter Width = 6
-) (
-  input                  clk_i,
-  input                  rst_i,
-  input                  start_i,
-  input                  cmp_i,
-  output reg [Width-1:0] result_o,
-  output     [Width-1:0] dac_o,
-  output reg             sample_o,
-  output reg             eoc_o
-);
-  
-  localparam [1:0] s0 = 2'b00,  // Wait
-                   s1 = 2'b01,  // Sample
-                   s2 = 2'b10,  // Convertion
-                   s3 = 2'b11;  // Done
-                   
-  reg       [1:0] state_reg, state_next;
-  reg [Width-1:0]  mask_reg, mask_next;
-  reg [Width-1:0]  res_reg,  res_next;
-  reg              enable;
-  
-  always @(*) begin
-    sample_o = 1'b0;
-    eoc_o    = 1'b0;
-    enable   = 1'b0;
-    mask_next  = mask_reg;
-    res_next   = res_reg;
-    state_next = state_reg;
-    case (state_reg)
-      s0: begin  // Wait
-            eoc_o = 1'b1;
-            if (start_i) begin
-              state_next = s1;
-            end
-          end
-      s1: begin // Sample
-            state_next = s2;
-            sample_o  = 1'b1;
-            mask_next = 10'b1000000000;
-            res_next  = 10'b0000000000;
-          end
-      s2: begin // Convertion
-            mask_next = mask_reg >> 1;
-            if (cmp_i) begin
-              res_next  = res_reg | mask_reg;
-            end
-            if (mask_reg[0]) begin
-              state_next = s3;
-            end  
-          end
-      s3: begin // Done
-            state_next = s0;
-            enable = 1'b1;
-          end
-    endcase
-  end
+module fsm_sar_bs (clk,SOC,EOC,Q ,sample,D,cmp);
 
-  assign dac_o = res_reg | mask_reg;
+input clk; // clock input
+input SOC; // SOC=1 to perform conversion
+output EOC; // EOC=1 when conversion finished
+//output [9:0] result; // 8 bit result output
+output sample; // to S&H circuit
+output [7:0] D; // to DAC
+output [7:0] Q; // BORRAR 
+input cmp; // from comparator
 
-  always @(posedge clk_i, posedge rst_i) begin
-    if (rst_i) begin
-      state_reg <= s0;
-      mask_reg  <= 0;
-      res_reg   <= 0;
-    end else begin
-      state_reg <= state_next;
-      mask_reg  <= mask_next;
-      res_reg   <= res_next;
-    end
-  end
+reg [1:0] state; // current state in state machine
+reg [7:0] SR; // bit to test in binary search
+reg [7:0] result; // hold partially converted result
+reg [7:0] qn;
+wire EOCN;
+
+	parameter sWait=0, sSample=1, sConv=2, sDone=3;
+
+// synchronous design
+	always @(posedge clk) begin
+		if (SOC) state <= sWait; // stop and reset if SOC=0
+	else case (state) // choose next state in state machine
+		sWait :  state <= sSample; 
+	sSample :
+		begin // start new conversion so
+			state <= sConv; // enter convert state next
+		SR <= 7'b1000000; // reset SR to MSB only
+		result <= 7'b0000000; // clear result
+	end
+
+	sConv :
+		begin
+					// set bit if comparitor indicates input larger than
+					// D currently under consideration, else leave bit clear
+	if (cmp) result <= result | SR;
+					// shift SR to try next bit next time
+	SR <= SR>>1;
+					// finished once LSB has been done
+	if (SR[0]) state <= sDone;
+	end
+
+	sDone :;
+	endcase
+
+	end
+
+	assign sample = state==sSample; // drive sample and hol
+	assign D = result | SR; // (result so far) OR (bit to try)
+	assign EOC = state==sDone; // indicate when finished
+	assign EOCN = state==sDone; // indicate when finished
+	assign Q = qn;
+// LATCH D
   
-  always @(posedge clk_i, posedge rst_i) begin
-    if (rst_i) begin
-      result_o <= { Width {1'b0} };
-    end else if (enable) begin
-      result_o <= res_reg;
-    end
-  end
-  
-endmodule
+	always @(posedge EOCN) begin
+	  qn = result; 	
+	end
+	endmodule
