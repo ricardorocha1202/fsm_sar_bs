@@ -5,14 +5,14 @@ input SOC; // SOC=1 to perform conversion
 output EOC; // EOC=1 when conversion finished
 //output [9:0] result; // 8 bit result output
 output sample; // to S&H circuit
-output [7:0] D; // to DAC
-output [7:0] Q; // BORRAR 
+output [6:0] D; // to DAC
+output [6:0] Q; // BORRAR 
 input cmp; // from comparator
 
 reg [1:0] state; // current state in state machine
-reg [7:0] SR; // bit to test in binary search
-reg [7:0] result; // hold partially converted result
-reg [7:0] qn;
+reg [6:0] SR; // bit to test in binary search
+reg [6:0] result; // hold partially converted result
+reg [6:0] qn;
 wire EOCN;
 
 	parameter sWait=0, sSample=1, sConv=2, sDone=3;
