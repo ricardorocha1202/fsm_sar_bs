@@ -1,58 +1,55 @@
-module fsm_sar_bs (clk,SOC,EOC,Q ,sample,D,cmp);
+module fsm_sar_bs (
+    input clk, // Entrada del reloj
+    input SOC, // SOC=1 para realizar la conversión
+    output reg EOC, // EOC=1 cuando la conversión haya terminado
+    output reg sample, // para el circuito S&H
+    output reg [6:0] D, // al DAC
+    output reg [6:0] Q, // BORRAR 
+    input cmp // desde el comparador
+);
 
-input clk; // clock input
-input SOC; // SOC=1 to perform conversion
-output EOC; // EOC=1 when conversion finished
-//output [9:0] result; // 8 bit result output
-output sample; // to S&H circuit
-output [6:0] D; // to DAC
-output [6:0] Q; // BORRAR 
-input cmp; // from comparator
+reg [1:0] state; // Estado actual en la máquina de estados
+	reg [6:0] SR; // Bit para probar en la búsqueda binaria
+	reg [6:0] result; // Mantener el resultado parcialmente convertido
+	reg [6:0] qn;
 
-reg [1:0] state; // current state in state machine
-reg [6:0] SR; // bit to test in binary search
-reg [6:0] result; // hold partially converted result
-reg [6:0] qn;
-wire EOCN;
+// Parámetros de estado
+parameter sWait = 2'b00, sSample = 2'b01, sConv = 2'b10, sDone = 2'b11;
 
-	parameter sWait=0, sSample=1, sConv=2, sDone=3;
+// Diseño síncrono
+always @(posedge clk) begin
+    if (SOC) begin
+        state <= sWait; // Detener y reiniciar si SOC=0
+    end else begin
+        case (state) // Elegir el próximo estado en la máquina de estados
+            sWait: state <= sSample; 
+            sSample: begin // Comenzar nueva conversión
+                state <= sConv; // Entrar al estado de conversión
+                SR <= 7'b1000000; // Restablecer SR solo al MSB
+                result <= 7'b0000000; // Limpiar el resultado
+            end
+            sConv: begin
+                // Establecer el bit si el comparador indica que la entrada es mayor que D
+                // actualmente en consideración, de lo contrario dejar el bit claro
+                if (cmp) result <= result | SR;
+                // Desplazar SR para probar el próximo bit la próxima vez
+                SR <= SR >> 1;
+                // Terminado una vez que se ha hecho LSB
+                if (SR[0]) state <= sDone;
+            end
+            sDone: ;
+        endcase
+    end
+end
 
-// synchronous design
-	always @(posedge clk) begin
-		if (SOC) state <= sWait; // stop and reset if SOC=0
-	else case (state) // choose next state in state machine
-		sWait :  state <= sSample; 
-	sSample :
-		begin // start new conversion so
-			state <= sConv; // enter convert state next
-		SR <= 7'b1000000; // reset SR to MSB only
-		result <= 7'b0000000; // clear result
-	end
+assign sample = (state == sSample); // Conducir sample and hold
+assign D = result | SR; // (resultado hasta ahora) O (bit a probar)
+assign EOC = (state == sDone); // Indicar cuando se haya terminado
+assign Q = qn;
 
-	sConv :
-		begin
-					// set bit if comparitor indicates input larger than
-					// D currently under consideration, else leave bit clear
-	if (cmp) result <= result | SR;
-					// shift SR to try next bit next time
-	SR <= SR>>1;
-					// finished once LSB has been done
-	if (SR[0]) state <= sDone;
-	end
+// LATCH D	
+always @(posedge EOC) begin
+    qn <= result; 	
+end
 
-	sDone :;
-	endcase
-
-	end
-
-	assign sample = state==sSample; // drive sample and hol
-	assign D = result | SR; // (result so far) OR (bit to try)
-	assign EOC = state==sDone; // indicate when finished
-	assign EOCN = state==sDone; // indicate when finished
-	assign Q = qn;
-// LATCH D
-  
-	always @(posedge EOCN) begin
-	  qn = result; 	
-	end
-	endmodule
+endmodule
